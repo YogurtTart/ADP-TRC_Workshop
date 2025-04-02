@@ -1,0 +1,51 @@
+#include <LiquidCrystal_I2C.h>
+
+// Define LCD pins (for parallel communication)
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+const int trigPin = 5;
+const int echoPin = 4;
+const int buzzer = 13;
+
+void setup() {
+    lcd.begin(16, 2); //Initialize the LCD
+  	pinMode(trigPin, OUTPUT);
+  	pinMode(echoPin, INPUT);
+  	pinMode(buzzer, OUTPUT);
+  
+    lcd.setCursor(0, 0); // First row, first column
+    lcd.print("Distance Sensor");
+      
+}
+
+void loop() {
+  
+  long duration;
+  int distance;
+  
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin,LOW);
+  
+  //Measure the response
+  duration = pulseIn(echoPin, HIGH);
+  
+  //Conver to distance (cm)
+  distance = duration * 0.034 /2 ;
+  
+  //Display on LCD
+  lcd.setCursor(0,1);
+  lcd.print("Distance: ");
+  lcd.print(distance);
+  lcd.print("cm");
+  
+  //Buzzer aleart
+  if(distance <10){
+    digitalWrite(buzzer, HIGH);
+  }else{
+    digitalWrite(buzzer, LOW);
+  }
+  delay(500);
+}
