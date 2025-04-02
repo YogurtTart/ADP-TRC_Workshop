@@ -1,0 +1,112 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <SoftwareSerial.h>
+
+// Initialize the LCD with I2C address 0x27, 16 columns, and 2 rows
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+const int trigPin = 5;
+const int echoPin = 4;
+const int buzzer = 13;
+const int buttonPin = 3;
+
+SoftwareSerial BTSerial(0, 1); // RX, TX
+
+
+void setup() {
+  
+    pinMode(trigPin, OUTPUT);
+  	pinMode(echoPin, INPUT);
+  	pinMode(buzzer, OUTPUT);
+  	pinMode(buttonPin, INPUT);
+    BTSerial.begin(9600);
+
+    lcd.begin(16, 2); //Initialize the LCD
+  	
+    // Initialize the LCD
+    lcd.init();
+    lcd.backlight();
+    lcd.setCursor(0, 0);
+    lcd.print("Waiting for data");
+      
+}
+
+void loop() {
+
+  
+  if (digitalRead(buttonPin) == LOW){ // Bluetooth Function
+    
+    
+  readBluetooth();
+    
+  }else{ //Ultrasonic Function
+    
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Distance Sensor");
+    measureDistance();
+    
+  }
+  
+}
+
+void measureDistance(){
+  
+  long duration;
+  int distance;
+  
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin,LOW);
+  
+  //Measure the response
+  duration = pulseIn(echoPin, HIGH);
+  
+  //Conver to distance (cm)
+  distance = duration * 0.034 /2 ;
+  
+  //Display on LCD
+  lcd.setCursor(0,1);
+  lcd.print("Distance: ");
+  lcd.print(distance);
+  lcd.print("cm");
+  
+  
+  //Buzzer aleart
+  if(distance <10){
+    digitalWrite(buzzer, HIGH);
+  }else{
+    digitalWrite(buzzer, LOW);
+  }
+  
+  delay(500);
+    
+}
+
+void readBluetooth(){
+
+   	if (BTSerial.available()) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    
+    // Read and display incoming message
+    String message = "";
+    while (BTSerial.available()) {
+      char c = BTSerial.read();
+      message += c;
+      delay(10);  // Small delay to allow full message reception
+    }
+    
+    lcd.print(message.substring(0, 16)); // Display first 16 characters on first line
+    if (message.length() > 16) {
+      lcd.setCursor(0, 1);
+      lcd.print(message.substring(16, 32)); // Display next 16 characters on second line
+    }
+  }
+
+}
+
+
+
